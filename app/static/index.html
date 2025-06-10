@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>AI 따라하기 스트리밍</title>
+  <style>
+    body { font-family: 'Arial', sans-serif; margin: 0; padding: 0; background-color: #1c1c1c; color: white; }
+    .container { max-width: 800px; margin: auto; padding: 2rem; }
+    h1 { text-align: center; margin-bottom: 2rem; }
+    .input-group { display: flex; flex-direction: column; gap: 1rem; }
+    input, select, button {
+      padding: 0.7rem; font-size: 1rem; border: none; border-radius: 8px;
+    }
+    input, select { background-color: #333; color: white; }
+    button { background-color: #4caf50; color: white; cursor: pointer; }
+    button:hover { background-color: #45a049; }
+    .script-box {
+      background: #2a2a2a; padding: 1rem; border-radius: 8px; margin-top: 2rem; min-height: 100px;
+    }
+    .player-controls { margin-top: 2rem; display: flex; align-items: center; gap: 1rem; }
+    audio { width: 100%; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🎤 AI 따라하기 스트리밍</h1>
+    <div class="input-group">
+      <input type="text" id="youtubeUrl" placeholder="유튜브 링크 붙여넣기" />
+      <select id="level">
+        <option value="easy">👶 초급</option>
+        <option value="medium">🧒 중급</option>
+        <option value="hard">🧠 고급</option>
+      </select>
+      <button type="button" onclick="startStreaming()">시작하기</button>
+    </div>
+    <div class="script-box" id="scriptBox">🎧 스크립트가 여기에 표시됩니다.</div>
+    <div class="player-controls">
+      <audio id="audioPlayer" controls></audio>
+      <button type="button" onclick="repeatPlay()">🔁 반복</button>
+    </div>
+  </div>
+  <script>
+    async function startStreaming() {
+      const url = document.getElementById('youtubeUrl').value;
+      const level = document.getElementById('level').value;
+      const form = new FormData();
+      form.append("youtubeUrl", url);
+      form.append("level", level);
+  
+      const scriptBox = document.getElementById('scriptBox');
+      const audioPlayer = document.getElementById('audioPlayer');
+  
+      scriptBox.innerHTML = "🎧 처리 중입니다... 잠시만 기다려 주세요.";
+  
+      try {
+        const res = await fetch("http://localhost:8000/api/process", { method: "POST", body: form });
+        const data = await res.json();
+  
+        if (data.error) {
+          scriptBox.innerHTML = "❌ 오류: " + data.error;
+          return;
+        }
+  
+        scriptBox.innerHTML = data.script.map(line => `🗣️ ${line}`).join("<br>");
+        audioPlayer.src = data.audioUrl;
+  
+        await audioPlayer.play().catch(err => {
+          console.warn("🎧 자동 재생 실패:", err);
+          scriptBox.innerHTML += "<br><br>⚠️ 자동 재생이 차단되어 수동으로 재생 버튼을 눌러야 할 수 있습니다.";
+        });
+  
+      } catch (e) {
+        console.error("❌ 요청 중 에러 발생:", e);
+        scriptBox.innerHTML = "❌ 요청 처리 중 오류가 발생했습니다.";
+      }
+    }
+  
+    function repeatPlay() {
+      const audio = document.getElementById("audioPlayer");
+      audio.currentTime = 0;
+      audio.play();
+    }
+  </script>
+  
+</body>
+</html>

@@ -1,0 +1,8 @@
+fastapi
+uvicorn
+openai
+youtube-transcript-api
+pydub
+edge-tts
+python-dotenv
+python-multipart
