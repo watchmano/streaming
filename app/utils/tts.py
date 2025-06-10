@@ -8,7 +8,7 @@ async def _generate_tts_clip(text: str, path: str, voice="en-US-JennyNeural", ra
     communicate = edge_tts.Communicate(text, voice=voice, rate=rate)
     await communicate.save(path)
 
-def generate_tts(text: str, out_path: str, voice="en-US-JennyNeural"):
+async def generate_tts(text: str, out_path: str, voice="en-US-JennyNeural"):
     lines = [line.strip() for line in text.split('.') if line.strip()]
     first_sentence = lines[0]
     temp_dir = f"temp_audio_{uuid.uuid4().hex[:6]}"
@@ -63,4 +63,5 @@ def generate_tts(text: str, out_path: str, voice="en-US-JennyNeural"):
         combined.export(out_path, format="mp3")
         print(f"✅ 첫 문장 오디오 생성 완료: {out_path}")
 
-    asyncio.run(process_first_sentence())
+    # asyncio.run(process_first_sentence())
+    await process_first_sentence()
