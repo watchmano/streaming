@@ -23,7 +23,7 @@ async def generate_tts(text: str, out_path: str, voice="en-US-JennyNeural"):
         intro_path = os.path.join(temp_dir, "01_intro.mp3")
         tasks.append(_generate_tts_clip(f"Listen carefully: {first_sentence}", intro_path, voice))
         paths.append(intro_path)
-        paths.append("silence")  # 8초 정적
+        paths.append("short_silence")  # 2초 정적
 
         words = first_sentence.split()
 
@@ -61,7 +61,7 @@ async def generate_tts(text: str, out_path: str, voice="en-US-JennyNeural"):
 
         # 오디오 합치기
         silence = AudioSegment.silent(duration=8000)
-        short_silence = AudioSegment.silent(duration=3000)
+        short_silence = AudioSegment.silent(duration=2000)
         combined = AudioSegment.empty()
 
         for path in paths:
