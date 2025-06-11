@@ -64,6 +64,8 @@ async def generate_tts(text: str, out_path: str, voice="en-US-JennyNeural"):
         short_silence = AudioSegment.silent(duration=2000)
         combined = AudioSegment.empty()
 
+
+
         for path in paths:
             if path == "silence":
                 combined += silence
