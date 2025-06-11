@@ -21,7 +21,7 @@ async def generate_tts(text: str, out_path: str, voice="en-US-JennyNeural"):
 
         # 1. 전체 문장 느리게 읽기
         intro_path = os.path.join(temp_dir, "01_intro.mp3")
-        tasks.append(_generate_tts_clip(f"Listen carefully: {first_sentence}", intro_path, voice))
+        tasks.append(_generate_tts_clip(f"Listen: {first_sentence}", intro_path, voice))
         paths.append(intro_path)
         paths.append("short_silence")  # 2초 정적
 
