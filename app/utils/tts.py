@@ -23,25 +23,34 @@ async def generate_tts(text: str, out_path: str, voice="en-US-JennyNeural"):
         intro_path = os.path.join(temp_dir, "01_intro.mp3")
         tasks.append(_generate_tts_clip(f"Listen carefully: {first_sentence}", intro_path, voice))
         paths.append(intro_path)
+        paths.append("silence")  # 8초 정적
 
-        # 2. 문장 절반씩 나누기 후 2회 반복
         words = first_sentence.split()
-        half = len(words) // 2
-        first_half = " ".join(words[:half])
-        second_half = " ".join(words[half:])
 
-        for i in range(2):
-            p1_path = os.path.join(temp_dir, f"02_half1_{i}.mp3")
-            p2_path = os.path.join(temp_dir, f"03_half2_{i}.mp3")
-            tasks.append(_generate_tts_clip(first_half, p1_path, voice))
-            tasks.append(_generate_tts_clip(second_half, p2_path, voice))
-            paths.extend([p1_path, p2_path])
+        if len(words) < 6:
+            # 짧은 문장인 경우 전체 문장을 2회 반복
+            for i in range(2):
+                repeat_path = os.path.join(temp_dir, f"02_repeat_{i}.mp3")
+                tasks.append(_generate_tts_clip(first_sentence, repeat_path, voice))
+                paths.append(repeat_path)
+                paths.append("short_silence")
+        else:
+            # 문장 절반 나누기 후 2회 반복
+            half = len(words) // 2
+            part1 = " ".join(words[:half])
+            part2 = " ".join(words[half:])
+            for i in range(2):
+                p1_path = os.path.join(temp_dir, f"02_half1_{i}.mp3")
+                p2_path = os.path.join(temp_dir, f"03_half2_{i}.mp3")
+                tasks.append(_generate_tts_clip(part1, p1_path, voice))
+                tasks.append(_generate_tts_clip(part2, p2_path, voice))
+                paths.extend([p1_path, "short_silence", p2_path, "short_silence"])
 
         # 3. 따라 말하세요 안내 + 정적
         prompt_path = os.path.join(temp_dir, "04_prompt.mp3")
         tasks.append(_generate_tts_clip("Your turn now.", prompt_path, voice))
         paths.append(prompt_path)
-        paths.append("silence")  # 2초 정적
+        paths.append("silence")  # 8초 정적
 
         # 4. 정답 다시 들려주기
         final_path = os.path.join(temp_dir, "05_final.mp3")
@@ -51,17 +60,19 @@ async def generate_tts(text: str, out_path: str, voice="en-US-JennyNeural"):
         await asyncio.gather(*tasks)
 
         # 오디오 합치기
-        silence = AudioSegment.silent(duration=2000)
+        silence = AudioSegment.silent(duration=8000)
+        short_silence = AudioSegment.silent(duration=3000)
         combined = AudioSegment.empty()
 
         for path in paths:
             if path == "silence":
                 combined += silence
+            elif path == "short_silence":
+                combined += short_silence
             else:
                 combined += AudioSegment.from_file(path)
 
         combined.export(out_path, format="mp3")
         print(f"✅ 첫 문장 오디오 생성 완료: {out_path}")
 
-    # asyncio.run(process_first_sentence())
     await process_first_sentence()

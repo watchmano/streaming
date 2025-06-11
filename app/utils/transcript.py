@@ -1,6 +1,7 @@
 import subprocess
 import os
 from pathlib import Path
+import re
 
 def extract_video_id(url: str) -> str:
     if "watch?v=" in url:
@@ -9,11 +10,16 @@ def extract_video_id(url: str) -> str:
         return url.split("youtu.be/")[-1].split("?")[0]
     return url
 
+
+def clean_vtt_line(line: str) -> str:
+    # <00:00:00.000> 또는 <c> ... </c> 같은 태그 제거
+    line = re.sub(r"<[^>]+>", "", line)
+    return line.strip()
+
 def get_transcript(url: str) -> list[str]:
     video_id = extract_video_id(url)
     print(f"📥 Downloading subtitle for video ID: {video_id}")
 
-    # 자막 다운로드 (자동 생성 자막 포함)
     command = [
         "yt-dlp",
         "--write-auto-sub",
@@ -30,7 +36,6 @@ def get_transcript(url: str) -> list[str]:
         print(e.stderr.decode())
         return []
 
-    # .vtt 파일 열기
     vtt_file = Path(f"{video_id}.en.vtt")
     if not vtt_file.exists():
         print("❌ 자막 파일이 생성되지 않았습니다.")
@@ -39,7 +44,9 @@ def get_transcript(url: str) -> list[str]:
     lines = []
     for line in vtt_file.read_text(encoding='utf-8').splitlines():
         if line and not line.startswith(('WEBVTT', '00:', '-->', 'NOTE')):
-            lines.append(line.strip())
+            cleaned = clean_vtt_line(line)
+            if cleaned:
+                lines.append(cleaned)
 
     print("📜 Parsed transcript lines:", lines[:5])
     return lines

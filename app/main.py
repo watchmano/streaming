@@ -30,7 +30,7 @@ async def process(youtubeUrl: str = Form(...), level: str = Form(...)):
 
         tts_path = os.path.join(OUTPUT_DIR, "tts.mp3")
         final_path = os.path.join(OUTPUT_DIR, "final.mp3")
-        bgm_path = os.path.join(BASE_DIR, "assets/bgm/bgm_hiphop.mp3")
+        bgm_path = os.path.join(BASE_DIR, "assets/bgm/ambience-cafe.mp3")
 
         # ✅ await 사용
         await generate_tts(joined, tts_path)
